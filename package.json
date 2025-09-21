@@ -66,8 +66,8 @@
     "node": ">=0.12.0"
   },
   "scripts": {
-    "start": "node server",
     "grunt": "grunt",
+    "start": "npm run grunt serve",
     "postinstall": "bower install --config.interactive=false"
   },
   "private": true
