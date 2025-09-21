@@ -1,14 +1,21 @@
 'use strict';
 
-var mongoose = require('bluebird').promisifyAll(require('mongoose'));
+var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var slugs = require('mongoose-url-slugs');
+var slug = require('mongoose-slug-updater');
+
+mongoose.plugin(slug);
 
 var CatalogSchema = new Schema({
   name: { type: String, required: true},
   parent: { type: Schema.Types.ObjectId, ref: 'Catalog' },
   ancestors: [{ type: Schema.Types.ObjectId, ref: 'Catalog' }],
-  children: [{ type: Schema.Types.ObjectId, ref: 'Catalog' }]
+  children: [{ type: Schema.Types.ObjectId, ref: 'Catalog' }],
+  slug: {
+    type: String,
+    slug: 'name',
+    unique: true
+  }
 });
 
 CatalogSchema.methods = {
@@ -16,13 +23,13 @@ CatalogSchema.methods = {
     var that = this;
     child.parent = this._id;
     child.ancestors = this.ancestors.concat([this._id]);
-    return this.model('Catalog').create(child).addCallback(function (child) {
+    return this.model('Catalog').create(child).then(function (child) {
       that.children.push(child._id);
-      that.save();
+      return that.save().then(function() {
+        return child;
+      });
     });
   }
 }
-
-CatalogSchema.plugin(slugs('name'));
 
 module.exports = mongoose.model('Catalog', CatalogSchema);

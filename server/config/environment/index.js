@@ -35,15 +35,6 @@ var all = {
   // List of user roles
   userRoles: ['guest', 'user', 'admin'],
 
-  // MongoDB connection options
-  mongo: {
-    options: {
-      db: {
-        safe: true
-      }
-    }
-  },
-
   facebook: {
     clientID:     process.env.FACEBOOK_ID || 'id',
     clientSecret: process.env.FACEBOOK_SECRET || 'secret',
@@ -63,9 +54,9 @@ var all = {
   },
 
   braintree: {
-    clientID:     process.env.BRAINTREE_ID || 'id',
-    clientSecret: process.env.BRAINTREE_SECRET || 'secret',
-    callbackMerchant:  process.env.BRAINTREE_MERCHANT || 'merchant'
+    clientId:     process.env.BRAINTREE_ID || 'sandbox_dummy_id',
+    clientSecret: process.env.BRAINTREE_SECRET || 'sandbox_dummy_secret',
+    clientMerchant:  process.env.BRAINTREE_MERCHANT || 'sandbox_dummy_merchant'
   }
 };
 

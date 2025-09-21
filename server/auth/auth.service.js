@@ -3,11 +3,23 @@
 var passport = require('passport');
 var config = require('../config/environment');
 var jwt = require('jsonwebtoken');
-var expressJwt = require('express-jwt');
+var { expressjwt: expressJwt } = require('express-jwt'); // Updated import syntax
 var compose = require('composable-middleware');
 var User = require('../api/user/user.model');
+
+// Updated express-jwt configuration for newer versions
 var validateJwt = expressJwt({
-  secret: config.secrets.session
+  secret: config.secrets.session,
+  algorithms: ['HS256'], // Required in newer versions
+  getToken: function(req) {
+    // Custom token extraction
+    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+      return req.headers.authorization.split(' ')[1];
+    } else if (req.query && req.query.access_token) {
+      return req.query.access_token;
+    }
+    return null;
+  }
 });
 
 /**
@@ -18,15 +30,13 @@ function isAuthenticated() {
   return compose()
     // Validate jwt
     .use(function(req, res, next) {
-      // allow access_token to be passed through query parameter as well
-      if (req.query && req.query.hasOwnProperty('access_token')) {
-        req.headers.authorization = 'Bearer ' + req.query.access_token;
-      }
+      // Token extraction is now handled by getToken above
       validateJwt(req, res, next);
     })
     // Attach user to request
     .use(function(req, res, next) {
-      User.findByIdAsync(req.user._id)
+      // Updated: findByIdAsync doesn't exist in newer Mongoose
+      User.findById(req.user._id)
         .then(function(user) {
           if (!user) {
             return res.status(401).end();
@@ -66,7 +76,7 @@ function hasRole(roleRequired) {
  */
 function signToken(id, role) {
   return jwt.sign({ _id: id, role: role }, config.secrets.session, {
-    expiresInMinutes: 60 * 5
+    expiresIn: '5h' // Updated: expiresInMinutes is deprecated, use expiresIn
   });
 }
 

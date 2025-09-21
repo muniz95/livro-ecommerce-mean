@@ -41,8 +41,8 @@ function handleEntityNotFound(res) {
 function saveUpdates(updates) {
   return function(entity) {
     var updated = _.merge(entity, updates);
-    return updated.saveAsync()
-      .spread(function(updated) {
+    return updated.save() // Remove Async and spread
+      .then(function(updated) {
         return updated;
       });
   };
@@ -51,7 +51,7 @@ function saveUpdates(updates) {
 function removeEntity(res) {
   return function(entity) {
     if (entity) {
-      return entity.removeAsync()
+      return entity.deleteOne() // Updated method
         .then(function() {
           res.status(204).end();
         });
@@ -61,14 +61,14 @@ function removeEntity(res) {
 
 // Gets a list of Catalogs
 exports.index = function(req, res) {
-  Catalog.find().sort({_id: 1}).execAsync()
+  Catalog.find().sort({_id: 1}).exec() // Remove Async
     .then(responseWithResult(res))
     .catch(handleError(res));
 };
 
 // Gets a single Catalog from the DB
 exports.show = function(req, res) {
-  Catalog.findByIdAsync(req.params.id)
+  Catalog.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(responseWithResult(res))
     .catch(handleError(res));
@@ -76,7 +76,7 @@ exports.show = function(req, res) {
 
 // Creates a new Catalog in the DB
 exports.create = function(req, res) {
-  Catalog.createAsync(req.body)
+  Catalog.create(req.body) // Remove Async
     .then(responseWithResult(res, 201))
     .catch(handleError(res));
 };
@@ -86,7 +86,7 @@ exports.update = function(req, res) {
   if (req.body._id) {
     delete req.body._id;
   }
-  Catalog.findByIdAsync(req.params.id)
+  Catalog.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(saveUpdates(req.body))
     .then(responseWithResult(res))
@@ -95,7 +95,7 @@ exports.update = function(req, res) {
 
 // Deletes a Catalog from the DB
 exports.destroy = function(req, res) {
-  Catalog.findByIdAsync(req.params.id)
+  Catalog.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));

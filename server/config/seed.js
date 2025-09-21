@@ -10,9 +10,10 @@ var Product = require('../api/product/product.model');
 var Catalog = require('../api/catalog/catalog.model');
 var mainCatalog, home, books, clothing;
 
-User.find({}).removeAsync()
+// Updated to use standard Mongoose methods
+User.find({}).deleteMany({})
   .then(function() {
-    User.createAsync({
+    return User.create([{
       provider: 'local',
       name: 'Test User',
       email: 'test@test.com',
@@ -23,15 +24,18 @@ User.find({}).removeAsync()
       name: 'Admin',
       email: 'admin@admin.com',
       password: 'admin'
-    })
-    .then(function() {
-      console.log('finished populating users');
-    });
+    }]);
+  })
+  .then(function() {
+    console.log('finished populating users');
+  })
+  .catch(function(err) {
+    console.error('Error populating users:', err);
   });
 
 Catalog
   .find({})
-  .remove()
+  .deleteMany({})
   .then(function () {
     return Catalog.create({ name: 'All'});
   })
@@ -49,10 +53,10 @@ Catalog
   })
   .then(function (category) {
     clothing = category._id;
-    return Product.find({}).remove({});
+    return Product.find({}).deleteMany({});
   })
   .then(function() {
-    return Product.create({
+    return Product.create([{
       title: 'MEAN eCommerce Book',
       imageUrl: '/assets/uploads/meanbook.jpg',
       price: 25,
@@ -73,11 +77,11 @@ Catalog
       stock: 50,
       categories: [home],
       description: 'Convert coffee into MEAN code'
-    });
+    }]);
   })
   .then(function () {
     console.log('Finished populating Products with categories');
   })
-  .then(null, function (err) {
+  .catch(function (err) {
     console.error('Error populating Products & categories: ', err);
   });

@@ -17,7 +17,9 @@ module.exports = function (grunt) {
     cdnify: 'grunt-google-cdn',
     protractor: 'grunt-protractor-runner',
     buildcontrol: 'grunt-build-control',
-    istanbul_check_coverage: 'grunt-mocha-istanbul'
+    istanbul_check_coverage: 'grunt-mocha-istanbul',
+    sass: 'grunt-sass',
+    babel: 'grunt-babel' // Add this line
   });
 
   // Time how long tasks take. Can help when optimizing build times
@@ -170,7 +172,9 @@ module.exports = function (grunt) {
       options: {
         map: true,
         processors: [
-          require('autoprefixer-core')({browsers: ['last 1 version']})
+          require('autoprefixer')({
+            overrideBrowserslist: ['> 1%', 'last 2 versions', 'not dead']
+          })
         ]
       },
       dist: {
@@ -510,7 +514,14 @@ module.exports = function (grunt) {
     // Compiles ES6 to JavaScript using Babel
     babel: {
       options: {
-        sourceMap: true
+        sourceMap: true,
+        presets: [
+          ['@babel/preset-env', {
+            targets: {
+              browsers: ['last 2 versions']
+            }
+          }]
+        ]
       },
       client: {
         files: [{
@@ -524,12 +535,19 @@ module.exports = function (grunt) {
 
     // Compiles Sass to CSS
     sass: {
+      options: {
+        implementation: require('sass'),
+        sourceMap: true
+      },
       server: {
         options: {
-          compass: false
+          sourceMap: true,
+          includePaths: [
+            'client/bower_components'
+          ]
         },
         files: {
-          '.tmp/app/app.css' : '<%= yeoman.client %>/app/app.scss'
+          '.tmp/app/app.css': 'client/app/app.scss'
         }
       }
     },
@@ -616,18 +634,17 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['build', 'env:all', 'env:prod', 'express:prod', 'wait', 'open', 'express-keepalive']);
+      return grunt.task.run(['build', 'express:dist', 'wait', 'open', 'express-keepalive']);
     }
 
     if (target === 'debug') {
       return grunt.task.run([
         'clean:server',
         'env:all',
-        'injector:sass',
         'concurrent:server',
         'injector',
-        'wiredep:client',
-        'postcss',
+        'wiredep',
+        // 'postcss', // Comment this out temporarily
         'concurrent:debug'
       ]);
     }
@@ -635,11 +652,10 @@ module.exports = function (grunt) {
     grunt.task.run([
       'clean:server',
       'env:all',
-      'injector:sass',
       'concurrent:server',
       'injector',
-      'wiredep:client',
-      'postcss',
+      'wiredep',
+      // 'postcss', // Comment this out temporarily
       'express:dev',
       'wait',
       'open',
