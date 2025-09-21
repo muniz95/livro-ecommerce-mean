@@ -44,8 +44,8 @@ function handleEntityNotFound(res) {
 function saveUpdates(updates) {
   return function(entity) {
     var updated = _.merge(entity, updates);
-    return updated.saveAsync()
-      .spread(function(updated) {
+    return updated.save() // Remove Async
+      .then(function(updated) {
         return updated;
       });
   };
@@ -54,7 +54,7 @@ function saveUpdates(updates) {
 function removeEntity(res) {
   return function(entity) {
     if (entity) {
-      return entity.removeAsync()
+      return entity.deleteOne() // Updated method
         .then(function() {
           res.status(204).end();
         });
@@ -66,9 +66,10 @@ function saveFile(res, file) {
   return function(entity){
     var newPath = '/assets/uploads/' + path.basename(file.path);
     entity.imageUrl = newPath;
-    return entity.saveAsync().spread(function(updated) {
-      return updated;
-    });
+    return entity.save() // Remove Async and spread
+      .then(function(updated) {
+        return updated;
+      });
   }
 }
 
@@ -82,14 +83,14 @@ function productsInCategory(catalog) {
 
 // Gets a list of Products
 exports.index = function(req, res) {
-  Product.findAsync()
+  Product.find() // Remove Async
     .then(responseWithResult(res))
     .catch(handleError(res));
 };
 
 // Gets a single Product from the DB
 exports.show = function(req, res) {
-  Product.findByIdAsync(req.params.id)
+  Product.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(responseWithResult(res))
     .catch(handleError(res));
@@ -97,7 +98,7 @@ exports.show = function(req, res) {
 
 // Creates a new Product in the DB
 exports.create = function(req, res) {
-  Product.createAsync(req.body)
+  Product.create(req.body) // Remove Async
     .then(responseWithResult(res, 201))
     .catch(handleError(res));
 };
@@ -107,7 +108,7 @@ exports.update = function(req, res) {
   if (req.body._id) {
     delete req.body._id;
   }
-  Product.findByIdAsync(req.params.id)
+  Product.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(saveUpdates(req.body))
     .then(responseWithResult(res))
@@ -116,7 +117,7 @@ exports.update = function(req, res) {
 
 // Deletes a Product from the DB
 exports.destroy = function(req, res) {
-  Product.findByIdAsync(req.params.id)
+  Product.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
@@ -129,7 +130,7 @@ exports.upload = function(req, res) {
     return handleError(res)('File not provided');
   }
 
-  Product.findByIdAsync(req.params.id)
+  Product.findById(req.params.id) // Remove Async
     .then(handleEntityNotFound(res))
     .then(saveFile(res, file))
     .then(responseWithResult(res))
@@ -139,7 +140,7 @@ exports.upload = function(req, res) {
 exports.catalog = function(req, res) {
   Catalog
     .findOne({ slug: req.params.slug })
-    .execAsync()
+    .exec() // Remove Async
     .then(productsInCategory)
     .then(responseWithResult(res))
     .catch(handleError(res));
@@ -149,7 +150,7 @@ exports.search = function(req, res) {
   Product
     .find({ $text: { $search: req.params.term }})
     .populate('categories')
-    .execAsync()
+    .exec() // Remove Async
     .then(responseWithResult(res))
     .catch(handleError(res));
 };
