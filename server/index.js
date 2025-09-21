@@ -1,7 +1,12 @@
 'use strict';
 
-// Register the Babel require hook
-require('babel-core/register');
+// Set default node environment to development
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Export the application
-exports = module.exports = require('./app');
+// Updated Babel register for modern Babel
+require('@babel/register')({
+  presets: ['@babel/preset-env']
+});
+
+// Start up the server
+require('./app');
